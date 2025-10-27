@@ -14,6 +14,10 @@
     filecolor=magenta,
     urlcolor=cyan,
 }
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows}
+\usepackage[style=ieee, backend=biber]{biblatex}
+\addbibresource{references.bib}
 
 \begin{document}
 
@@ -122,5 +126,7 @@ The system facilitates secure and transparent data exchange between patients, do
 \input{implementation.tex}
 \input{results.tex}
 \input{conclusion.tex}
+
+\printbibliography
 
 \end{document}
