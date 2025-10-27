@@ -1,0 +1,167 @@
+\documentclass[a4paper, 11pt, oneside]{report} 
+
+\newcommand{\plogo}{\fbox{$\mathcal{PL}$}} 
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{float}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage[utf8]{inputenc} 
+\usepackage[T1]{fontenc} 
+\usepackage{fouriernc} 
+\usepackage{subcaption}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{graphics}
+\usepackage{longtable}
+\usepackage[nottoc]{tocbibind}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{lipsum}
+\begin{document} 	
+	\begin{titlepage} 
+		
+		\centering 
+		
+		\vspace*{\baselineskip} 
+		
+		\vspace{0.75\baselineskip}
+		
+		{\LARGE TITLE FOF THE REPORT}
+		
+		\vspace{0.75\baselineskip}
+		
+		\vspace{2\baselineskip}
+
+		A report submitted for the course named Project/Internship - XXX (CSXXX)
+		
+		\vspace*{7\baselineskip}
+		
+		Submitted By
+		
+		\vspace{0.5\baselineskip}
+		
+		{\scshape\Large Student Name\\ SEMESTER - XXX \\ 20010132}
+		
+		\vspace{0.5\baselineskip}
+		
+		Supervised By
+		
+		\vspace{0.5\baselineskip}
+		
+		{\scshape\Large Faculty Advisor Name}
+		
+		\vspace{0.5\baselineskip}
+		
+		\vfill
+		
+		\begin{center}
+			\includegraphics[width=5cm]{report_file/iiit manipur.png}
+		\end{center}
+	
+	{\scshape\small Department of Computer Science and Engineering\\ Indian Institute of Information Technology Senapati, Manipur \\ Month, Year}
+	
+\end{titlepage}
+
+%----------------------------------------------------------------------------------------
+
+% \begin{center}
+\begin{center}
+   { \LARGE \textbf{Declaration}}
+\end{center}
+In this submission, I have expressed my idea in my own words, and I have adequately cited and referenced any ideas or words that were taken from another source. I also declare that I adhere to all principles of academic honesty and integrity and that I have not misrepresented or falsified any ideas, data, facts, or sources in this submission. If any violation of the above is made, I understand that the institute may take disciplinary action. Such a violation may also engender disciplinary action from the sources which were not properly cited or permission not taken when needed.
+
+\vspace{1cm}\hspace{7cm} STUDENT NAME \\
+\vspace{1cm}\hspace{9cm} ROLLNO \\
+\vspace{1CM} DATE: DD-MONTH-YYYY
+
+\newpage
+
+\begin{center}
+	\thispagestyle{empty}
+		
+		\begin{table}
+			\centering
+			\includegraphics[scale=0.2]{report_file/iiit manipur.png}
+			\begin{tabular}{l}
+				Department of Computer Science Engineering \\
+				Indian Institute of Information Technology Senapati, Manipur \\
+			\end{tabular}
+		\end{table}
+		\par\noindent\rule{\textwidth}{0.4pt}
+			Supervisor Name
+			\hspace*{\fill} Email: \href{mailto:advisor@iiitmanipur.ac.in}{supervisoremail@iiitmanipur.ac.in}\\
+			Supervisor Designation
+			\hspace*{0pt}\hfill Contact No: +91 phone\\[2cm]
+			{\Huge \textbf{\emph{To Whom It May Concern}}}\\[2cm]
+			\linespread{1.13}
+			\large{This is to certify that the project/internsip report 
+                entitled \textbf{"TITLE",} submitted to the department of Computer Science and Engineering, Indian Institute of Information Technology Senapati, Manipur in partial fullfillment for the award of degree of Bachelor of Technology in Computer Science and Engineering is record bonafide work carried out by \textbf{Student Name} bearing roll number ROLLNO.}\\[2.0cm]
+			\hspace*{2.6in}\large{Signature of Faculty Advisor}\\[0.3cm]
+			\hspace*{2.5in}\textbf{(Faculty Advisor)}\\[0.5cm]
+			
+	\end{center}
+        \vspace{0.5cm}
+	Signature of the Examiner 1 ............................\\\\
+	Signature of the Examiner 2 ............................\\\\
+	Signature of the Examiner 3 ............................\\\\
+	Signature of the Examiner 4 ............................\\\\
+	\newpage
+ 
+	\newpage
+\textbf{ Attach Internship Offer Letter(s) and Internship Completion Certificate(s) here.}
+
+        \vspace{1cm}
+ \textbf{Report}: At the end of the internship, students need to submit an internship report (Hardcopy, 40-60 Page long, duly signed by the supervisor/
+mentor appointed by the industry to the Head of Department along with the internship offer-letter. In case of multiple internships, they need to submit multiple offer letters. The internship report must include a certificate from the supervisor/ mentor stating that the work done during the internship is genuine and is not copied from any other sources. The name of the supervisor/ mentor, designation, name of the organization, official email ID and phone-number should be vivid on the certificate.
+   \vspace{1cm}
+   
+\textbf{Evaluation}: Students need to present the work done during internship(s) to the evaluation committee of the CSE department, IIIT Manipur.
+ 
+		\newpage
+
+\begin{abstract}
+	
+Abstract of your work
+
+\end{abstract}
+
+\pagebreak
+	
+
+        \begin{center}
+            { \LARGE \textbf{Acknowledgement}}
+        \end{center}
+	\vspace{2cm}
+	Write your acknowledgement here.
+	
+	
+	\vspace{1cm}
+	
+	\hspace{7cm}Student Name
+	\tableofcontents
+	\listoffigures
+        \listoftables
+	\chapter{Introduction}
+	\input{chapters/1_Introduction}
+        \chapter{Literature Survey}
+        \input{chapters/2_Literature_Survey}
+        \chapter{Requirement Engineering}
+        \input{chapters/3_Requirement}
+        \chapter{System Design}
+        \input{chapters/4_System_Design}
+        \chapter{Implementation}
+        \input{chapters/5_Implementation}
+        \chapter{Results}
+        \input{chapters/6_Results}
+        \chapter{Conclusion}
+        \input{chapters/7_Conclusion}
+        
+        \bibliography{report}
+	\bibliographystyle{plain}
+        
+	
+	
+	
+	
+\end{document}
