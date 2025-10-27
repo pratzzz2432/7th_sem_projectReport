@@ -2,12 +2,26 @@
 \label{chap:introduction}
 
 \section{Outline}
-In an era where healthcare is becoming increasingly digital, the volume of patient data being generated each day has grown exponentially. However, this growth has not been matched by equivalent progress in data ownership, privacy, or interoperability. Medical records are typically stored within centralized databases managed by hospitals, clinics, and laboratories — systems that are often incompatible with each other and vulnerable to breaches. Patients rarely have visibility or control over their personal health information, and data-sharing between institutions remains inefficient and insecure.
+In the contemporary landscape of healthcare, the digital transformation has precipitated an unprecedented explosion in the volume of patient data. Every clinical visit, laboratory test, prescription, and medical scan contributes to a vast and ever-growing repository of personal health information (PHI). This digital surge holds the promise of revolutionizing medicine through data-driven insights, personalized treatments, and enhanced public health strategies. However, the technological infrastructure supporting this data has failed to evolve at a commensurate pace, particularly concerning the fundamental principles of data ownership, privacy, and interoperability.
 
-To address these critical issues, MediVault has been conceptualized and developed as a blockchain-based healthcare data sharing system. It enables patients to securely store, manage, and share their encrypted medical data through a decentralized and transparent network. Beyond security, MediVault extends into the ethical realm by introducing an Anonymized Opt-in Research Module. This feature allows patients to voluntarily contribute de-identified medical data to research projects while maintaining full control over their consent — achieving a delicate balance between individual privacy and collective scientific progress. Built using Ethereum blockchain, Solidity smart contracts, Truffle, Ganache, Web3.js, and React.js, MediVault creates a fully decentralized ecosystem where every operation — from record creation to data sharing — is verified, recorded, and immutable.
+Currently, medical records are overwhelmingly confined to centralized, proprietary databases managed by individual healthcare institutions such as hospitals, clinics, and laboratories. These systems, often referred to as Electronic Health Record (EHR) systems, operate in isolated silos. This fragmentation creates significant barriers to seamless data exchange, leading to inefficiencies, redundant testing, and incomplete patient histories when individuals seek care from multiple providers. More critically, the centralized nature of these databases renders them prime targets for security breaches, exposing sensitive patient information to the risk of theft and misuse. Patients, the true owners of this data, are often relegated to the periphery, with minimal visibility or control over how their information is stored, accessed, or shared.
+
+To confront these deeply entrenched challenges, this project introduces \textbf{MediVault}, a blockchain-based healthcare data sharing system conceptualized and developed to pioneer a new paradigm of patient-centric data management. MediVault empowers patients to securely store, manage, and meticulously control the sharing of their encrypted medical data through a decentralized and inherently transparent network. The system's architecture is designed not only to fortify data against unauthorized access but also to restore autonomy to the individual.
+
+Beyond the critical function of security, MediVault extends its innovation into the ethical domain by incorporating a unique \textbf{Anonymized Opt-in Research Module}. This forward-thinking feature provides patients with the voluntary choice to contribute their de-identified medical data to scientific research projects. Crucially, patients retain full and revocable control over their consent, thereby striking a delicate yet essential balance between the advancement of collective scientific progress and the safeguarding of individual privacy.
+
+The technological foundation of MediVault is a robust stack comprising the Ethereum blockchain, smart contracts written in Solidity, and development tools including Truffle and Ganache. The user-facing interface is a clean and intuitive web application built with React.js, which communicates with the blockchain via Web3.js. This carefully chosen combination of technologies facilitates a fully decentralized ecosystem where every single operation—from the initial creation of a medical record to the granting of access permissions—is cryptographically verified, immutably recorded on the blockchain ledger, and transparently auditable by authorized parties.
 
 \section{Problem Statement}
-Traditional Electronic Health Record (EHR) systems rely on centralized architectures that introduce several issues. These include security vulnerabilities, unauthorized data access, duplication of medical records, and lack of transparency in data handling. Moreover, in many research scenarios, hospitals anonymize and sell patient data without explicit consent — raising ethical and legal concerns. MediVault addresses these problems by establishing a patient-centric data ownership model on the blockchain. Every piece of health information and every permission is governed by smart contracts, ensuring that data cannot be altered, deleted, or shared without patient approval. The system thereby restores autonomy to the patient while preserving data security and accountability.
+The reliance of traditional Electronic Health Record (EHR) systems on centralized client-server architectures introduces a host of severe and systemic issues. These problems span security, efficiency, and ethics, and they collectively undermine the trust and effectiveness of digital healthcare.
+
+First and foremost are the profound \textbf{security vulnerabilities}. Centralized databases represent a single point of failure, making them highly attractive targets for cyberattacks. A successful breach can compromise the sensitive health information of thousands or even millions of individuals in a single event. The consequences of such breaches are dire, ranging from financial fraud to identity theft and the public exposure of private medical conditions. Furthermore, the risk is not purely external; unauthorized data access by internal actors remains a significant and often overlooked threat.
+
+Second, the lack of \textbf{interoperability} between disparate EHR systems creates significant operational friction. When a patient moves between different hospitals or specialists, their medical records do not follow them seamlessly. This data fragmentation forces physicians to make critical decisions with an incomplete picture of the patient's history, potentially leading to misdiagnoses, contraindicated prescriptions, or the ordering of redundant and costly medical tests. This inefficiency not only inflates healthcare costs but can also directly impact the quality of patient care.
+
+Third, there is a pervasive \textbf{lack of transparency and patient control}. In the current model, patients are rarely informed about who is accessing their data, when, or for what purpose. The handling of their most personal information is opaque. This issue is particularly acute in the context of medical research. It is common practice for hospitals and data aggregators to anonymize and sell patient data to pharmaceutical companies, research institutions, and other third parties without obtaining explicit, specific consent from the individuals concerned. This practice, while often legally permissible within regulatory loopholes, raises significant ethical and legal questions about data ownership and the right to privacy.
+
+MediVault directly addresses this multifaceted problem statement by establishing a patient-centric data ownership model built upon the foundational principles of blockchain technology. Every piece of health information and every access permission is governed by self-executing smart contracts. This ensures that data cannot be altered, deleted, or shared without the patient's explicit, cryptographically signed approval. By doing so, the system restores autonomy to the patient while simultaneously preserving the highest standards of data security, integrity, and accountability.
 
 The core problems with existing systems can be summarized as follows:
 \begin{itemize}
@@ -21,94 +35,80 @@ The core problems with existing systems can be summarized as follows:
 MediVault is designed to systematically address each of these challenges by re-architecting the health data ecosystem around the principles of decentralization, patient consent, and cryptographic security.
 
 \section{Motivation}
-The motivation behind MediVault arises from two key needs: patient empowerment — giving individuals direct control over their medical information — and ethical research enablement, which allows large-scale health data analysis while respecting personal privacy. The growing misuse of medical data, coupled with the necessity of data-driven healthcare innovation, demands a system that protects both privacy and progress. MediVault provides precisely this — a platform where patients become active participants, choosing when and how their data can be shared for research, and ensuring transparency through blockchain verification.
+The motivation for developing MediVault is rooted in two fundamental and interconnected societal needs: the empowerment of patients as sovereign owners of their health data, and the enablement of ethical, large-scale medical research that respects personal privacy.
 
-The project is driven by the vision of a healthcare system where technology serves the patient first. By leveraging the inherent properties of blockchain—immutability, transparency, and decentralization—we can build a new paradigm for health data management. This new paradigm shifts the balance of power from institutions to individuals, fostering a more collaborative and trustworthy relationship between patients, providers, and researchers. The potential to accelerate medical research by providing a secure and ethical platform for data sharing is another significant motivator.
+The primary driver is \textbf{patient empowerment}. The current healthcare data paradigm often treats patients as passive subjects of data collection rather than active participants in their own health journey. Giving individuals direct, granular control over their medical information represents a monumental shift in this dynamic. When patients can decide who sees their data and under what conditions, they become empowered stakeholders. This control fosters greater trust in the healthcare system, encourages more proactive engagement with personal health, and provides a robust defense against the growing tide of data misuse. The ability to instantly grant or revoke access gives patients unprecedented agency over their digital identity.
 
-\section{Purpose}
-The purpose of MediVault is to design and develop a secure, decentralized healthcare data sharing platform that enables patient ownership and management of medical records, secure data exchange between patients, doctors, and researchers, end-to-end encryption and tamper-proof data storage using blockchain, and voluntary and revocable consent for anonymized research participation. By achieving these goals, MediVault envisions a healthcare ecosystem that is secure, ethical, transparent, and fundamentally patient-first.
+The secondary, yet equally critical, motivation is the need for \textbf{ethical research enablement}. The future of medicine depends on the analysis of large, diverse datasets to identify disease patterns, test new treatments, and develop predictive models for public health. However, the potential of this data-driven innovation is severely hampered by public mistrust stemming from the opaque data-sharing practices of the past. Patients are understandably hesitant to allow their data to be used when they have no say in the process. This creates a significant bottleneck for medical progress.
 
-The primary objectives of the project are:
+MediVault provides a solution that protects both privacy and progress. The Anonymized Opt-in Research Module creates a transparent and trustworthy framework where patients can become willing partners in research. By choosing when and how their de-identified data can be shared, they contribute to the collective good without sacrificing their individual privacy. The transparency of the blockchain ensures that their consent is recorded and respected immutably, turning patients from mere data sources into valued contributors to medical advancement. This ethical approach is designed to unlock the vast potential of health data analysis by rebuilding the foundation of trust upon which it must be based.
+
+\section{Purpose and Objectives}
+The overarching purpose of the MediVault project is to design, develop, and deploy a secure, decentralized healthcare data sharing platform that re-engineers the flow of medical information to be fundamentally patient-first. To achieve this broad vision, the project pursues a set of specific and measurable objectives:
+
 \begin{enumerate}
-    \item To implement a decentralized application (DApp) that allows patients to upload, view, and manage their health records.
-    \item To develop Solidity smart contracts that govern data access, patient consent, and record sharing logic.
-    \item To integrate MetaMask for secure user authentication and transaction signing.
-    \item To create an Anonymized Opt-in Research Module that allows researchers to access de-identified data with patient consent.
-    \item To ensure the confidentiality and integrity of health data through encryption and hashing mechanisms.
-    \item To build a user-friendly interface using React.js that simplifies interaction with the blockchain.
+    \item \textbf{To Establish Patient Ownership of Medical Records:} The primary objective is to create a system where patients have ultimate control and ownership over their health data. This involves providing them with the tools to manage their records, grant and revoke access permissions at will, and maintain a complete, transparent history of all data interactions.
+
+    \item \textbf{To Ensure Secure and Tamper-Proof Data Storage:} The project aims to leverage blockchain technology to create an immutable ledger of all transactions. End-to-end encryption (using robust algorithms like AES and SHA-256) will be implemented to ensure that the content of medical records remains confidential and accessible only to authorized individuals, protecting data both at rest and in transit.
+
+    \item \textbf{To Facilitate Secure Data Exchange:} The system must enable seamless and secure data exchange between the three key stakeholders: patients, doctors, and researchers. The platform will provide distinct interfaces and access levels for each role, governed by smart contracts that enforce patient-defined permissions.
+
+    \item \textbf{To Implement a Framework for Voluntary and Ethical Research Participation:} A core objective is to build the Anonymized Opt-in Research Module. This feature must allow for voluntary, explicit, and easily revocable consent for patients to contribute their de-identified data to research pools. The system will be designed to ensure that no personally identifiable information is ever exposed during this process.
 \end{enumerate}
 
-\section{Project Roadmap}
-The development of MediVault followed a structured roadmap, divided into distinct phases to ensure a systematic and iterative development process. Each phase built upon the previous one, culminating in a fully functional prototype.
+By successfully achieving these objectives, MediVault envisions a transformed healthcare ecosystem. This new ecosystem will be defined by its security, its ethical integrity, its operational transparency, and its unwavering commitment to placing the patient at the center of the data-sharing equation.
 
-\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=red!30]
-\tikzstyle{io} = [trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=blue!30]
-\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!30]
-\tikzstyle{decision} = [diamond, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=green!30]
-\tikzstyle{arrow} = [thick,->,>=stealth]
+\section{Report Roadmap}
+This report is structured to provide a comprehensive overview of the MediVault project, from its conceptual foundations to its implementation and results. The document is organized into seven chapters, each building upon the last to give the reader a clear and thorough understanding of the system's architecture, purpose, and significance. The flow of the report is designed to logically progress from the high-level problem domain to the specific technical details and final conclusions.
+
+The diagram below provides a visual representation of the report's structure.
 
 \begin{figure}[h!]
 \centering
-\begin{tikzpicture}[node distance=2cm]
-\node (start) [startstop] {Phase 1: Foundation \& Setup};
-\node (pro1) [process, below of=start] {Phase 2: Smart Contract Development};
-\node (pro2) [process, below of=pro1] {Phase 3: Frontend Development};
-\node (pro3) [process, below of=pro2] {Phase 4: Integration \& Testing};
-\node (stop) [startstop, below of=pro3] {Phase 5: Deployment \& Finalization};
+\begin{tikzpicture}[
+    node distance=2.5cm,
+    auto,
+    block/.style={
+        rectangle,
+        draw,
+        fill=blue!20,
+        text width=8em,
+        text centered,
+        rounded corners,
+        minimum height=4em
+    },
+    line/.style={
+        draw,
+        -latex'
+    }
+]
+    % Nodes
+    \node [block] (intro) {Chapter 1: Introduction};
+    \node [block, below of=intro] (lit) {Chapter 2: Literature Survey};
+    \node [block, below of=lit] (req) {Chapter 3: Requirement Engineering};
+    \node [block, below of=req] (design) {Chapter 4: System Design};
+    \node [block, below of=design] (impl) {Chapter 5: Implementation};
+    \node [block, below of=impl] (results) {Chapter 6: Results};
+    \node [block, below of=results] (conc) {Chapter 7: Conclusion};
 
-\draw [arrow] (start) -- (pro1);
-\draw [arrow] (pro1) -- (pro2);
-\draw [arrow] (pro2) -- (pro3);
-\draw [arrow] (pro3) -- (stop);
-
+    % Arrows
+    \path [line] (intro) -- (lit);
+    \path [line] (lit) -- (req);
+    \path [line] (req) -- (design);
+    \path [line] (design) -- (impl);
+    \path [line] (impl) -- (results);
+    \path [line] (results) -- (conc);
 \end{tikzpicture}
-\caption{Project Development Phases}
+\caption{Structure of the Project Report}
 \label{fig:roadmap}
 \end{figure}
 
-\subsection{Phase 1: Foundation and Environment Setup}
-This initial phase focused on establishing the development environment and foundational technologies. Key activities included:
 \begin{itemize}
-    \item Setting up the Node.js environment and installing necessary packages.
-    \item Installing and configuring the Truffle Suite for smart contract development.
-    \item Setting up a local blockchain using Ganache for testing and deployment.
-    \item Initializing the React.js project for the frontend application.
+    \item \textbf{Chapter 1: Introduction} begins by outlining the project's context, defining the core problem statement, and establishing the motivation and purpose behind the development of MediVault.
+    \item \textbf{Chapter 2: Literature Survey} reviews existing research and similar projects in the field of blockchain for healthcare, identifying the gaps that MediVault aims to fill.
+    \item \textbf{Chapter 3: Requirement Engineering} details the functional, non-functional, and system requirements that guided the development process.
+    \item \textbf{Chapter 4: System Design} provides a deep dive into the three-layer decentralized architecture of MediVault, explaining the roles of the frontend, middleware, and backend components.
+    \item \textbf{Chapter 5: Implementation} describes the development process, including the tools, technologies, and methodologies used to build the smart contracts and the web interface.
+    \item \textbf{Chapter 6: Results} presents the outcomes of the project, detailing the performance of the system in testing and verifying its functional success.
+    \item \textbf{Chapter 7: Conclusion} summarizes the project's achievements, discusses its broader implications, and suggests potential avenues for future work and improvement.
 \end{itemize}
-
-\subsection{Phase 2: Smart Contract Development}
-In this phase, the core logic of the MediVault system was developed using Solidity. The focus was on creating robust and secure smart contracts to manage data and permissions. This involved:
-\begin{itemize}
-    \item Designing the data structures for patient records and consent.
-    \item Writing the \texttt{PatientData.sol}, \texttt{SaveData.sol}, and \texttt{ResearchConsent.sol} contracts.
-    \item Implementing functions for user registration, data upload, access control, and consent management.
-    \item Rigorously testing the smart contracts on the local Ganache network using Truffle tests.
-\end{itemize}
-
-\subsection{Phase 3: Frontend Development}
-With the backend logic in place, the focus shifted to building the user interface. The goal was to create an intuitive and seamless user experience. Key tasks included:
-\begin{itemize}
-    \item Designing the user dashboards for patients, doctors, and researchers.
-    \item Implementing the user interface components using React.js and Material-UI.
-    \item Integrating MetaMask for user authentication and wallet interaction.
-    \item Connecting the frontend to the smart contracts using the Web3.js library.
-\end{itemize}
-
-\subsection{Phase 4: Integration and End-to-End Testing}
-This phase involved integrating the frontend and backend components to create a cohesive system. The focus was on ensuring that all parts of the application worked together as expected. Activities included:
-\begin{itemize}
-    \item Connecting the React components to the corresponding smart contract functions.
-    \item Simulating user interactions, such as uploading documents and granting consent.
-    \item Performing end-to-end testing with multiple user accounts (patients and doctors) to identify and fix bugs.
-    \item Implementing data encryption on the client-side before uploading to the blockchain.
-\end{itemize}
-
-\subsection{Phase 5: Deployment and Finalization}
-The final phase focused on preparing the project for deployment and documenting the work. This included:
-\begin{itemize}
-    \item Deploying the smart contracts to a public test network (e.g., Ropsten or Rinkeby) for final testing.
-    \item Finalizing the user interface and ensuring a smooth user experience.
-    \item Writing comprehensive documentation for the project, including this report.
-    \item Preparing a final presentation and demonstration of the MediVault system.
-\end{itemize}
-
-This structured approach ensured that the project was developed in a manageable and organized manner, with clear milestones and deliverables for each phase.
