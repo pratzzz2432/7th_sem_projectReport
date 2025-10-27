@@ -1,0 +1,21 @@
+\chapter{REQUIREMENT ENGINEERING}
+\label{chap:requirement_engineering}
+
+\section{Functional Requirements}
+The system is designed to meet several core functional requirements to ensure a comprehensive, patient-centric experience. Users, primarily patients, must be able to register and authenticate using their personal blockchain wallet, with \textbf{MetaMask} integration providing a secure and familiar entry point. Once authenticated, patients need the ability to \textbf{upload} their personal and medical information, which is encrypted before being processed.
+
+A critical feature is \textbf{access control}, where patients can grant or revoke access permissions for specific doctors, ensuring they have full control over who can view their records. The most innovative requirement is the \textbf{Anonymized Research Consent}, which allows patients to toggle their participation in de-identified research data sharing with a simple action. Correspondingly, registered researchers should only be able to retrieve anonymized, aggregated health statistics from the pool of consenting patients. Finally, to maintain integrity and trust, all actions performed within the system, such as data uploads or permission changes, must be logged as immutable transactions on the blockchain.
+
+\section{Non-Functional Requirements}
+Beyond core functionalities, the system must adhere to several non-functional requirements. \textbf{Security} is paramount; multi-layer AES and SHA-256 encryption are employed to guarantee data confidentiality and integrity. \textbf{Transparency} is another cornerstone, with all operations being traceable via the public blockchain ledger. The system's \textbf{scalability} is supported by a modular smart contract design, which allows for the future addition of new features without overhauling the existing architecture.
+
+From a user perspective, \textbf{usability} is achieved through a clean and minimal React-based interface designed for easy navigation. On the backend, \textbf{performance} is optimized by designing smart contract calls that minimize gas consumption, making transactions more efficient.
+
+\section{System Requirements}
+The development and operation of the MediVault system depend on the following software and hardware stack:
+\begin{itemize}
+    \item \textbf{Operating System}: Windows 11
+    \item \textbf{Hardware}: Minimum 8 GB RAM, Intel i5 Processor
+    \item \textbf{Software Stack}: Node.js, Truffle, Ganache GUI, MetaMask, React.js, and Solidity v0.5.16
+    \item \textbf{Network}: A local Ethereum test network established via Ganache
+\end{itemize}
