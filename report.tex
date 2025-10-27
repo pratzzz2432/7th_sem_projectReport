@@ -1,10 +1,20 @@
-\documentclass[12pt, a4paper]{report}
-\usepackage[utf8]{inputenc}
+\documentclass[a4paper, 11pt, oneside]{report} 
+
+\newcommand{\plogo}{\fbox{$\mathcal{PL}$}} 
 \usepackage{graphicx}
-\usepackage{geometry}
-\geometry{a4paper, margin=1in}
-\usepackage{setspace}
-\onehalfspacing
+\usepackage{graphics}
+\usepackage{float}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage[utf8]{inputenc} 
+\usepackage[T1]{fontenc} 
+\usepackage{fouriernc} 
+\usepackage{subcaption}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{graphics}
+\usepackage{longtable}
+\usepackage[nottoc]{tocbibind}
+\usepackage{url}
 \usepackage{hyperref}
 \hypersetup{
     colorlinks=true,
@@ -65,62 +75,104 @@
 
 \end{titlepage}
 
-% --- DECLARATION ---
-\chapter*{DECLARATION}
-\addcontentsline{toc}{chapter}{DECLARATION}
-I hereby declare that the project report entitled “\textbf{MediVault — A Blockchain-Based Healthcare Data Sharing System}” submitted by me to the Department of Computer Science and Engineering, Indian Institute of Information Technology, Manipur, is a bonafide and authentic work carried out by me under the supervision of Dr. Sanasam Chanu Inunganbi. The work presented here is original and has not been submitted in part or full to any other University or Institute for the award of any degree or diploma.
+%----------------------------------------------------------------------------------------
 
-\vspace{2cm}
-\noindent
-\textbf{Pratiksha} \\
-(220101098)
+\begin{center}
+   { \LARGE \textbf{Declaration}}
+\end{center}
+In this submission, I have expressed my idea in my own words, and I have adequately cited and referenced any ideas or words that were taken from another source. I also declare that I adhere to all principles of academic honesty and integrity and that I have not misrepresented or falsified any ideas, data, facts, or sources in this submission. If any violation of the above is made, I understand that the institute may take disciplinary action. Such a violation may also engender disciplinary action from the sources which were not properly cited or permission not taken when needed.
+
+\vspace{1cm}\hspace{7cm} Pratiksha Thakur \\
+\vspace{1cm}\hspace{9cm} 220101098 \\
+\vspace{1CM} DATE: DD-MONTH-YYYY
+
 \newpage
 
-% --- CERTIFICATE ---
-\chapter*{CERTIFICATE}
-\addcontentsline{toc}{chapter}{CERTIFICATE}
-This is to certify that the project report entitled “\textbf{MediVault — A Blockchain-Based Healthcare Data Sharing System}” is a bonafide work carried out by \textbf{Pratiksha (220101098)} in partial fulfillment of the requirements for the award of the degree of Bachelor of Technology in Computer Science and Engineering at the Indian Institute of Information Technology, Manipur. The work has been carried out under my guidance and is to the best of my knowledge, an original piece of work.
+\begin{center}
+	\thispagestyle{empty}
+		
+		\begin{table}
+			\centering
+			\includegraphics[scale=0.2]{report_file/iiit manipur.png}
+			\begin{tabular}{l}
+				Department of Computer Science Engineering \\
+				Indian Institute of Information Technology Senapati, Manipur \\
+			\end{tabular}
+		\end{table}
+		\par\noindent\rule{\textwidth}{0.4pt}
+			Dr. Sanasam Chanu Inunganbi
+			\hspace*{\fill} Email: \href{mailto:inunganbi@iiitmanipur.ac.in}{inunganbi@iiitmanipur.ac.in}\\
+			Assistant Professor, CSE
+			\hspace*{0pt}\hfill Contact No: +91 70058 44201\\[2cm]
+			{\Huge \textbf{\emph{To Whom It May Concern}}}\\[2cm]
+			\linespread{1.13}
+			\large{This is to certify that the project/internsip report 
+                entitled \textbf{"🌿 MediVault — A Blockchain-Based Healthcare Data Sharing System",} submitted to the department of Computer Science and Engineering, Indian Institute of Information Technology Senapati, Manipur in partial fullfillment for the award of degree of Bachelor of Technology in Computer Science and Engineering is record bonafide work carried out by \textbf{Pratiksha Thakur} bearing roll number \textbf{220101098}.}\\[2.0cm]
+			\hspace*{2.6in}\large{Signature of Faculty Advisor}\\[0.3cm]
+			\hspace*{2.5in}\textbf{(Dr. Sanasam Chanu Inunganbi)}\\[0.5cm]
+			
+	\end{center}
+        \vspace{0.5cm}
+	Signature of the Examiner 1 ............................\\\\
+	Signature of the Examiner 2 ............................\\\\
+	Signature of the Examiner 3 ............................\\\\
+	Signature of the Examiner 4 ............................\\\\
+	\newpage
+ 
+	\newpage
+\textbf{ Attach Internship Offer Letter(s) and Internship Completion Certificate(s) here.}
 
-\vspace{2cm}
-\noindent
-\textbf{Dr. Sanasam Chanu Inunganbi} \\
-Assistant Professor, CSE \\
-Supervisor
-\newpage
+        \vspace{1cm}
+ \textbf{Report}: At the end of the internship, students need to submit an internship report (Hardcopy, 40-60 Page long, duly signed by the supervisor/
+mentor appointed by the industry to the Head of Department along with the internship offer-letter. In case of multiple internships, they need to submit multiple offer letters. The internship report must include a certificate from the supervisor/ mentor stating that the work done during the internship is genuine and is not copied from any other sources. The name of the supervisor/ mentor, designation, name of the organization, official email ID and phone-number should be vivid on the certificate.
+   \vspace{1cm}
+   
+\textbf{Evaluation}: Students need to present the work done during internship(s) to the evaluation committee of the CSE department, IIIT Manipur.
+ 
+		\newpage
 
-% --- ACKNOWLEDGEMENT ---
-\chapter*{ACKNOWLEDGEMENT}
-\addcontentsline{toc}{chapter}{ACKNOWLEDGEMENT}
-I would like to express my deepest gratitude to my project supervisor, \textbf{Dr. Sanasam Chanu Inunganbi}, for her invaluable guidance, constant encouragement, and insightful feedback throughout the duration of this project. Her expertise and vision were instrumental in shaping the direction of this work.
+\begin{abstract}
+	
+Abstract of your work
 
-I am also thankful to the faculty and staff of the Department of Computer Science and Engineering for providing the necessary infrastructure and a conducive environment for research and learning.
+\end{abstract}
 
-Finally, I would like to thank my family and friends for their unwavering support and encouragement, which helped me navigate the challenges of this project.
+\pagebreak
+	
 
-\vspace{2cm}
-\noindent
-\textbf{Pratiksha}
-\newpage
-
-% --- ABSTRACT ---
-\chapter*{ABSTRACT}
-\addcontentsline{toc}{chapter}{ABSTRACT}
-Traditional Electronic Health Record (EHR) systems are plagued by issues of data security, interoperability, and patient privacy. Centralized architectures are vulnerable to breaches, and patients often lack control over their own medical information. This project, \textbf{MediVault}, introduces a blockchain-based healthcare data sharing system designed to address these critical challenges. By leveraging Ethereum, Solidity smart contracts, and a decentralized architecture, MediVault empowers patients with full ownership and control over their encrypted medical records.
-
-The system facilitates secure and transparent data exchange between patients, doctors, and researchers. A key innovation of this project is the \textbf{Anonymized Opt-in Research Module}, which allows patients to voluntarily contribute de-identified data for scientific research while maintaining full, revocable control over their consent. This feature creates an ethical framework for large-scale data analysis without compromising individual privacy. The implementation demonstrates a robust, patient-centric model that ensures data integrity, security, and accountability, paving the way for a more transparent and ethical healthcare ecosystem.
-\newpage
-
-% --- TABLE OF CONTENTS ---
-\tableofcontents
-\newpage
-
-% --- CHAPTERS ---
-\input{introduction.tex}
-\input{literature_survey.tex}
-\input{requirement_engineering.tex}
-\input{system_design.tex}
-\input{implementation.tex}
-\input{results.tex}
-\input{conclusion.tex}
-
+        \begin{center}
+            { \LARGE \textbf{Acknowledgement}}
+        \end{center}
+	\vspace{2cm}
+	Write your acknowledgement here.
+	
+	
+	\vspace{1cm}
+	
+	\hspace{7cm}Pratiksha Thakur
+	\tableofcontents
+	\listoffigures
+        \listoftables
+	
+	\input{chapters/1_Introduction}
+       
+        \input{chapters/2_Literature_Survey}
+       
+        \input{chapters/3_Requirement}
+      
+        \input{chapters/4_System_Design}
+     
+        \input{chapters/5_Implementation}
+      
+        \input{chapters/6_Results}
+        
+        \input{chapters/7_Conclusion}
+        
+        \bibliography{report}
+	\bibliographystyle{plain}
+        
+	
+	
+	
+	
 \end{document}
