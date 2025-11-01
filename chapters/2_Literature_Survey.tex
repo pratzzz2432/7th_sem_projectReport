@@ -1,0 +1,135 @@
+\chapter{Literature Review and Related Work}
+
+Environmental monitoring and early warning systems have become increasingly vital due to the rise of pollution, unpredictable weather, and disaster occurrences worldwide. Researchers have developed numerous frameworks combining sensors, wireless networks, and cloud analytics to track air quality and weather parameters in real time \cite{smart_env_monitoring2023, iot_monitoring2022}. However, most current systems depend heavily on constant internet connectivity, which limits their usability in remote or disaster-affected areas. This review examines existing studies in environmental monitoring, analyzes current technologies, and identifies research gaps that led to the development of the proposed \textbf{EcoSenseNet - Smart Environment Prediction and  Alert System} system.
+
+\section{Evolution of Environmental Monitoring Systems}
+
+The history of environmental monitoring systems can be traced from basic manual weather recording to advanced IoT-based sensor networks. Early models used standalone sensors that required manual data collection, later replaced by automated stations with limited data transmission capabilities. With the growth of the Internet of Things (IoT), sensors began to communicate wirelessly, allowing data to be collected, processed, and visualized in real time \cite{iot_sensors_review2021}.
+
+Wi-Fi-based networks provide high data throughput but suffer from range and power limitations, typically covering less than 100 meters \cite{lora_vs_wifi2022}. GSM networks, while offering greater range, introduce ongoing data costs and depend on cellular infrastructure, which often fails during disasters. ZigBee offers medium-range communication but requires complex mesh configurations and lacks scalability.
+
+In contrast, LoRa (Long Range) technology stands out for its low-power, long-distance communication capabilities, transmitting several kilometers while consuming minimal energy \cite{lora_network2023}. This feature makes LoRa highly suitable for rural or campus-scale monitoring applications where maintenance access is limited. However, existing LoRa networks still largely rely on cloud-connected gateways, creating a single point of failure when the internet or gateway becomes unavailable.
+
+\section{Artificial Intelligence in Environmental Forecasting}
+
+Predicting environmental parameters such as gas concentration, humidity, and temperature requires models capable of handling nonlinear and time-dependent relationships. Traditional statistical methods, though useful, lack the adaptability required for accurate short-term forecasting. With the rise of machine learning, particularly deep neural networks, prediction accuracy has improved significantly \cite{ml_environmental2023}.
+
+Long Short-Term Memory (LSTM) networks, a specialized form of recurrent neural networks (RNNs), have proven particularly effective for time-series prediction. They maintain long-term dependencies in sequential data, allowing them to forecast air pollution levels and meteorological conditions accurately \cite{lstm_forecasting2021}. Several research studies, including \cite{aiweather2023} and \cite{lstm_aqi2022}, implemented LSTM-based models for air quality prediction with strong accuracy. However, these models were mostly deployed on cloud infrastructure, which requires continuous internet access for both training and inference.
+
+In environments where connectivity is limited, local (edge) deployment of predictive models offers a promising alternative. By running ML models directly on local servers or microcontrollers, systems can function independently of cloud platforms, reducing latency and improving reliability \cite{edge_ai2022}. The proposed system builds upon this concept by hosting an LSTM model locally through a FastAPI backend, ensuring uninterrupted operation even when internet services are unavailable.
+
+\section{Review of Existing Systems}
+
+A variety of systems have been proposed and deployed to monitor environmental conditions. Table~\ref{tab:existing_systems} compares several representative systems that highlight both achievements and limitations.
+
+\begin{table}[H]
+\centering
+\caption{Detailed Comparison of Existing Environmental Monitoring Systems}
+\label{tab:existing_systems}
+\begin{tabular}{|p{2.8cm}|p{2.8cm}|p{2.8cm}|p{2.5cm}|p{3.5cm}|}
+\hline
+\textbf{System} & \textbf{Communication Technology} & \textbf{Data Processing} & \textbf{Key Strengths} & \textbf{Main Limitations} \\
+\hline
+AQI Monitor Pro \cite{aqimonitor2021} & GSM / Cellular Network & Cloud-based centralized server & Wide coverage in urban areas; app accessibility & Requires cellular connectivity; high power usage; fails during outages \\
+\hline
+OpenSense \cite{opensense2022} & Wi-Fi (802.11) & Cloud analytics & High data rate; detailed city-level pollution maps & Range limited to access points; requires mains power; internet-dependent \\
+\hline
+LoRaSense Network \cite{lorasense2023} & LoRaWAN with central gateway & Cloud processing via gateway & Long-range and low-power; reliable sensor data & Centralized gateway; no mesh capability; internet required \\
+\hline
+AI WeatherPredict \cite{aiweather2023} & Mixed (data aggregation) & Cloud-hosted LSTM model & High prediction accuracy & High latency; fails offline; high bandwidth requirements \\
+\hline
+SmartEdge Air \cite{smartedge2023} & Edge IoT nodes & Local microcontroller processing & Decentralized data collection & Limited processing power; minimal AI forecasting capability \\
+\hline
+\end{tabular}
+\end{table}
+
+Systems like AQI Monitor Pro and OpenSense primarily depend on cloud platforms for analytics and visualization. While they deliver accurate data, their reliance on continuous internet connectivity makes them unsuitable for disaster-prone or remote regions. LoRaSense Network successfully demonstrated long-range data collection but still used a single internet-connected gateway. SmartEdge Air explored edge processing but lacked predictive analytics capabilities.
+
+\section{Identified Research Gaps}
+
+From this review, several critical challenges emerge:
+\begin{itemize}
+    \item \textbf{Network Dependence:} Most systems stop functioning without internet access, creating a single point of failure.
+    \item \textbf{Centralized Architecture:} Gateway-based designs lack redundancy and resilience.
+    \item \textbf{Lack of Edge Intelligence:} Few systems deploy predictive ML locally on embedded hardware.
+    \item \textbf{Emergency Applicability:} Disaster-time functionality is rarely addressed.
+    \item \textbf{Limited Use of LoRa Mesh:} Peer-to-peer communication potential remains underexplored.
+\end{itemize}
+
+These limitations emphasize the need for a system capable of operating autonomously, predicting environmental trends, and transmitting information even when network infrastructure collapses.
+
+\section{Proposed System: Bridging the Gaps}
+
+The proposed \textbf{EcoSenseNet - Smart Environment Prediction and  Alert System} integrates IoT sensing, local AI prediction, and mesh networking to create a fully offline, resilient environmental monitoring network. Unlike existing systems that depend on cloud gateways, it distributes functionality across three local nodes (Laptops A, B, C), enabling decentralized data flow.
+
+At the sensing layer, Laptop A connects to MQ-series sensors via Heltec LoRa V3 and logs CSV readings every three minutes. The software layer running FastAPI processes these readings, converts them to JSON, and sends them to an on-device LSTM model for prediction. The communication layer uses Reticulum MeshChat over LoRa to transmit forecast alerts to Laptop B, which rebroadcasts messages through Wi-Fi to multiple student laptops (Laptop C group). This architecture eliminates internet dependency while maintaining high accuracy and responsiveness.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+node distance=1cm,
+every node/.style={align=center, font=\footnotesize},
+boxstyle/.style={draw, rounded corners, minimum width=2.5cm, minimum height=1cm, thick},
+cloud/.style={boxstyle, fill=blue!15},
+process/.style={boxstyle, fill=green!15},
+sensor/.style={boxstyle, fill=orange!15},
+user/.style={boxstyle, fill=purple!15}
+]
+% Traditional system
+\node[sensor] (s1) {Environmental\\Sensors};
+\node[cloud, right=2cm of s1] (c1) {Cloud\\Server};
+\node[process, right=1cm of c1] (ml1) {LSTM\\Prediction};
+\node[user, right=2cm of ml1] (u1) {End\\Users};
+\draw[->, thick, blue] (s1) -- node[above, font=\tiny]{Requires Internet} (c1);
+\draw[->, thick, blue] (c1) -- (ml1);
+\draw[->, thick, blue] (ml1) -- node[above, font=\tiny]{Cloud Output} (u1);
+\node[below=0.3cm of c1, font=\small\bfseries] {(a) Traditional Cloud-Dependent Architecture};
+% Proposed system
+\node[sensor, below=1cm of s1] (s2) {ESP32 + LoRa\\Sensors};
+\node[process, right=2cm of s2] (p2) {FastAPI + LSTM};
+\node[cloud, right=2cm of p2] (m2) {Reticulum\\Mesh};
+\node[user, right=2cm of m2] (u2) {Local\\Devices};
+\draw[->, thick, green!60!black] (s2) -- node[above, font=\tiny]{Serial/LoRa} (p2);
+\draw[->, thick, green!60!black] (p2) -- node[above, font=\tiny]{Predictions} (m2);
+\draw[->, thick, green!60!black] (m2) -- node[above, font=\tiny]{Offline Alerts} (u2);
+\draw[<->, dashed, thick, red] (s2.south) to[out=-20,in=-150] node[below, font=\tiny]{Peer-to-Peer Mesh} (u2.south);
+\node[below=0.1cm of p2, font=\small\bfseries] {(b) Proposed Internet-Independent Architecture};
+\end{tikzpicture}
+\caption{Architectural Comparison between Traditional and Proposed Approaches}
+\label{fig:architecture_comparison}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Comparative Analysis: Traditional vs. Proposed System}
+\label{tab:comparison}
+\begin{tabular}{|p{4cm}|p{5cm}|p{5cm}|}
+\hline
+\textbf{Aspect} & \textbf{Traditional Systems} & \textbf{Proposed System} \\
+\hline
+Network Dependency & Internet connection required for all operations & Fully offline; operates via LoRa + Wi-Fi mesh \\
+\hline
+Architecture & Centralized (cloud or gateway) & Decentralized (multi-node mesh) \\
+\hline
+Data Processing & Cloud-based ML processing & Local FastAPI + LSTM inference \\
+\hline
+Communication Range & Wi-Fi: 100 m / GSM: cellular limits & LoRa range: 2–5 km between devices \\
+\hline
+Power Consumption & High (Wi-Fi/GSM) & Low (LoRa + ESP32) \\
+\hline
+Failure Resilience & Gateway failure halts network & Self-healing mesh topology \\
+\hline
+Prediction Delay & Dependent on cloud latency & Instant on-site inference \\
+\hline
+Deployment Suitability & Urban, connected areas & Rural, disaster-prone, or campus settings \\
+\hline
+\end{tabular}
+\end{table}
+
+This architecture ensures robust communication even during complete internet failures, with minimal latency and operational cost. It further establishes a scalable foundation for environmental intelligence and emergency alerts in isolated regions.
+
+\section{Summary}
+
+This review analyzed the evolution of environmental monitoring, the application of AI in forecasting, and limitations of current architectures. Despite remarkable progress, most existing systems depend on cloud connectivity, which makes them unreliable during network disruptions.
+
+The proposed \textbf{EcoSenseNet - Smart Environment Prediction and Alert System} closes these gaps by combining low-power LoRa communication, local ML prediction, and Reticulum mesh networking into a single, autonomous framework. By enabling decentralized, internet-free environmental forecasting and communication, it lays the groundwork for disaster-resilient smart campuses and rural sustainability projects.
