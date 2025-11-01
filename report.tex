@@ -1,0 +1,200 @@
+\documentclass[a4paper,11pt,oneside]{report}
+
+% --------------------------------------
+% BASIC PACKAGES
+% --------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fouriernc}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{url}
+
+% --------------------------------------
+% TIKZ & GRAPHICS
+% --------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, shadows, shapes, arrows, fit}
+\usepackage{pgfplots}
+\usepackage{pgfgantt}
+\usepackage{msc}
+
+% --------------------------------------
+% CAPTION SETTINGS
+% --------------------------------------
+\captionsetup{font=small}
+
+% --------------------------------------
+% HYPERLINKS & REFERENCES
+% --------------------------------------
+\usepackage{hyperref}
+\usepackage[nottoc]{tocbibind}
+\usepackage{csquotes}
+\usepackage{cite}  % Numeric citation style
+
+% --------------------------------------
+% PAGE GEOMETRY & SPACING
+% --------------------------------------
+\geometry{margin=1in}
+\setstretch{1.3}
+
+% --------------------------------------
+% CUSTOM COMMANDS
+% --------------------------------------
+\newcommand{\plogo}{\fbox{$\mathcal{PL}$}}
+
+
+\begin{document}
+
+	\begin{titlepage}
+
+		\centering
+
+		\vspace*{\baselineskip}
+
+		\vspace{0.75\baselineskip}
+
+		{\LARGE  EcoSenseNet - Smart Environment Prediction and  Alert System}
+
+		\vspace{0.75\baselineskip}
+
+		\vspace{2\baselineskip}
+
+		A report submitted for the course named Project-III (CS4203)
+
+		\vspace*{7\baselineskip}
+
+		Submitted By
+
+		\vspace{0.5\baselineskip}
+
+		{\scshape\Large Pratiksha\\ SEMESTER - 7TH \\ 220101098}
+
+		\vspace{0.5\baselineskip}
+
+		Supervised By
+
+		\vspace{0.5\baselineskip}
+
+		{\scshape\Large Dr. Sanasam Chanu Inunganbi}
+
+		\vspace{0.5\baselineskip}
+
+		\vfill
+
+		\begin{center}
+			\includegraphics[width=5cm]{report_file/iiit manipur.png}
+		\end{center}
+
+	{\scshape\small Department of Computer Science and Engineering\\ Indian Institute of Information Technology Senapati, Manipur \\ October, 2025}
+
+\end{titlepage}
+
+%----------------------------------------------------------------------------------------
+
+\begin{center}
+   { \LARGE \textbf{Declaration}}
+\end{center}
+In this submission, I have expressed my idea in my own words, and I have adequately cited and referenced any ideas or words that were taken from another source. I also declare that I adhere to all principles of academic honesty and integrity and that I have not misrepresented or falsified any ideas, data, facts, or sources in this submission. If any violation of the above is made, I understand that the institute may take disciplinary action. Such a violation may also engender disciplinary action from the sources which were not properly cited or permission not taken when needed.
+
+\vspace{1cm}\hspace{8.5cm} Pratiksha \\
+\vspace{1cm}\hspace{9cm} 220101098 \\
+\vspace{1cm} DATE: 30-10-2025
+
+\newpage
+
+\begin{center}
+	\thispagestyle{empty}
+
+		\begin{table}
+			\centering
+			\includegraphics[scale=0.2]{report_file/iiit manipur.png}
+			\begin{tabular}{l}
+				Department of Computer Science Engineering \\
+				Indian Institute of Information Technology Senapati, Manipur \\
+			\end{tabular}
+		\end{table}
+		\par\noindent\rule{\textwidth}{0.4pt}
+			Dr. Sanasam Chanu Inunganbi
+			\hspace*{\fill} Email: \href{mailto:inunganbi@iiitmanipur.ac.in}{inunganbi@iiitmanipur.ac.in}\\
+			Assistant Professor, CSE
+			\hspace*{0pt}\hfill Contact No: +91 70058 44201\\[2cm]
+			{\Huge \textbf{\emph{To Whom It May Concern}}}\\[2cm]
+			\linespread{1.13}
+			\large{This is to certify that the project report
+                entitled \textbf{" EcoSenseNet - Smart Environment Prediction and  Alert System",} submitted to the department of Computer Science and Engineering, Indian Institute of Information Technology Senapati, Manipur in partial fullfillment for the award of degree of Bachelor of Technology in Computer Science and Engineering is record bonafide work carried out by \textbf{Pratiksha} bearing roll number \textbf{220101098}.}\\[2.0cm]
+			\hspace*{2.1in}\large{Signature of Faculty Advisor}\\
+			\hspace*{2in}\textbf{(Dr. Sanasam Chanu Inunganbi)}
+
+	\end{center}
+        \vspace{0.5cm}
+	Signature of the Examiner 1 ............................\\\\
+	Signature of the Examiner 2 ............................\\\\
+	Signature of the Examiner 3 ............................\\\\
+	Signature of the Examiner 4 ............................\\\\
+
+\begin{abstract}
+The \textbf{EcoSenseNet - Smart Environment Prediction and  Alert System} presents the design and development of a smart mini-satellite system intended for environmental monitoring and offline communication within a college campus network. The concept comes from frequent network disruptions in Manipur, where internet outages during disasters hinder effective communication and environmental awareness. This project aims to overcome such challenges by creating a localized, self-sufficient network that can predict environmental changes and broadcast alerts completely offline.
+
+The system operates through a multi-phase implementation distributed across three laptops acting as interconnected nodes. In the first phase, Laptop A, located in the administrative block, collects real-time data using sensors such as MQ4, MQ7, MQ135, MQ2, DHT22, and a flame sensor connected to a Heltec LoRa V3 (ESP32). The Arduino IDE is used to log this data into a CSV file at three-minute intervals. Once sufficient readings are captured, the system converts the data into a JSON payload and forwards it to a FastAPI server running locally. The FastAPI backend hosts a pre-trained Long Short-Term Memory (LSTM) model that analyzes recent patterns and predicts environmental conditions—such as gas concentration, temperature, and humidity—for the next three hours.
+
+In the second phase, the prediction results are exported to a locally hosted Reticulum MeshChat web application. Reticulum, operating through the Heltec LoRa transceiver, transmits the forecast data to another laptop (Laptop B) located in the hostel block. This second node receives the message offline via LoRa and rebroadcasts it over a shared Wi-Fi network using Reticulum’s local web relay feature. Students’ laptops (Laptop C) connected to the same Wi-Fi can instantly access the alerts through Reticulum running on specific ports—port 8000 for full message interaction and port 8080 for read-only access.
+
+The system not only transmits automated environmental alerts but also includes an integrated chat interface that allows administrative staff to send important messages to students, ensuring campus-wide communication even during network failures. All these processes operate entirely offline without depending on cloud services or the internet.
+
+By combining IoT-based sensing, machine learning prediction, and decentralized mesh communication, \textbf{EcoSenseNet - Smart Environment Prediction and  Alert System} demonstrates a feasible, low-cost, and resilient environmental monitoring framework. Its hybrid design—merging electronics, embedded systems, and intelligent networking—illustrates how modern technologies can be adapted to create disaster-ready communication systems in rural and educational environments where connectivity is limited.
+\end{abstract}
+
+
+
+
+\pagebreak
+
+
+\begin{center}
+{\LARGE \textbf{Acknowledgement}}
+\end{center}
+
+I would like to express my deep gratitude to all the individuals and institutions who have supported me throughout the course of this project.\\
+
+First and foremost, I extend my heartfelt thanks to my supervisor, \textbf{Dr. Sanasam Chanu Inunganbi}, for her invaluable guidance, insightful feedback, and unwavering support throughout the development of this project. Her expertise and encouragement have been instrumental in shaping this work to its fullest potential.\\
+
+I would also like to acknowledge the faculty of the Department of CSE and ECE at IIIT Senapati, Manipur, for their continuous encouragement and provision of resources that made this project possible. A special thanks to my friends from the ECE Department for their constant motivation, collaboration, and technical discussions that often brought fresh perspectives and valuable ideas to this work. Their support and teamwork made this journey more enjoyable and enriching.\\
+
+\hspace{10cm} \textbf{PRATIKSHA}
+
+
+
+	\tableofcontents
+	\listoffigures
+        \listoftables
+	\chapter{Introduction}
+	\input{chapters/1_Introduction}
+
+        \input{chapters/2_Literature_Survey}
+        \chapter{Requirement Engineering}
+        \input{chapters/3_Requirement}
+        \chapter{System Design}
+        \input{chapters/4_System_Design}
+        \chapter{Implementation}
+        \input{chapters/5_Implementation}
+        \chapter{Results}
+        \input{chapters/6_Results}
+        \chapter{Conclusion}
+        \input{chapters/7_Conclusion}
+
+  \bibliography{report}
+	\bibliographystyle{plain}
+\end{document}

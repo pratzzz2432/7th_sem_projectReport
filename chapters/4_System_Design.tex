@@ -1,0 +1,489 @@
+
+The system design presented in this chapter focuses on achieving a resilient and intelligent environmental monitoring and communication platform that remains fully functional even during disasters or internet outages. Unlike traditional IoT systems that depend on cloud infrastructure, \textbf{EcoSenseNet} adopts a decentralized and modular architecture, enabling continuous operation through local processing and peer-to-peer communication.
+
+The design philosophy is built on three foundational principles:
+\begin{enumerate}
+    \item \textbf{Resilience through decentralization:} Each node operates independently within a mesh network, ensuring continuity even if some nodes fail.
+    \item \textbf{Intelligence through local prediction:} A locally hosted \textbf{FastAPI–LSTM} model performs on-device environmental forecasting without relying on external servers.
+    \item \textbf{Accessibility through affordability:} The system uses low-cost, open-source hardware and software components to ensure deployability in rural and disaster-prone regions.
+\end{enumerate}
+
+The complete system integrates technologies from multiple domains—embedded systems, wireless communication, machine learning, and mesh networking—to form a cohesive, offline-capable network. This chapter explains each subsystem in detail, including architectural design, data flow, component-level rationale, and implementation considerations specific to the deployment environment in Manipur.
+
+\section{System Architecture Overview}
+
+The overall architecture follows a multi-layered pipeline where sensor data moves through sequential processing stages, each contributing unique functionality while maintaining independence from external infrastructure. The design comprises four major subsystems:
+\begin{itemize}
+    \item \textbf{Sensor Data Acquisition Layer –} Responsible for sensing and collecting environmental data through various sensors connected to the ESP32 (Heltec LoRa V3) board.
+
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+scale=0.9, transform shape,
+node distance=1.6cm and 2.0cm,
+every node/.style={draw, rounded corners, align=center, font=\small, minimum width=3.4cm, minimum height=1.1cm, thick},
+hw/.style={fill=blue!15, draw=blue!60},
+sw/.style={fill=orange!15, draw=orange!60},
+ml/.style={fill=purple!15, draw=purple!60},
+comm/.style={fill=green!15, draw=green!60},
+wifi/.style={->, >=stealth, thick, draw=teal!70, dashed},
+arrow/.style={->, >=stealth, thick, draw=gray!70}
+]
+
+% ====== Phase Labels ======
+\node[font=\footnotesize\bfseries, text=blue!70, draw=none] at (-8, 2.6) {Phase 1\\(Sensor Data Collection)};
+\node[font=\footnotesize\bfseries, text=orange!70, draw=none] at (-8,-5.6) {Phase 2\\(Local ML Processing)};
+\node[font=\footnotesize\bfseries, text=purple!70, draw=none] at (-8,-11) {Phase 3\\(LoRa Transmission)};
+\node[font=\footnotesize\bfseries, text=green!70, draw=none] at (1, -15) {Phase 4–5\\(Wi-Fi Broadcast + Chat)};
+
+% ====== Laptop A (Admin Node) ======
+\node[hw] (sensors) at (-2.5,2.6) {\textbf{Environmental Sensors}\\[-0.1cm]{\footnotesize MQ4, MQ7, MQ135, MQ2, DHT22, Flame}};
+\node[hw, below=of sensors] (esp32) {\textbf{Heltec LoRa V3 (ESP32)}\\[-0.1cm]{\footnotesize Sensor Interface + Serial Output}};
+\node[sw, below=of esp32] (fastapi) {\textbf{FastAPI Server}\\[-0.1cm]{\footnotesize Data Parsing \& Validation}};
+\node[ml, below=of fastapi] (lstm) {\textbf{LSTM Model}\\[-0.1cm]{\footnotesize 3-Hour Environmental Forecast}};
+\node[comm, below=of lstm] (reticA) {\textbf{Reticulum Node A}\\[-0.1cm]{\footnotesize LoRa Transmission}};
+\node[hw, below=of reticA] (heltecA) {\textbf{Heltec LoRa Board}\\[-0.1cm]{\footnotesize Tx @ 868 MHz}};
+
+% ====== Laptop B (Relay Node) ======
+\node[hw, right=4.5cm of heltecA] (heltecB) {\textbf{Heltec LoRa Board}\\[-0.1cm]{\footnotesize Rx @ 868 MHz}};
+\node[comm, below=of heltecB] (reticB) {\textbf{Reticulum Node B}\\[-0.1cm]{\footnotesize Receiver + Wi-Fi Relay}};
+\node[comm, below=of reticB] (wifi) {\textbf{Wi-Fi Broadcast}\\[-0.1cm]{\footnotesize Ports 8000/8080}};
+\node[comm, below=of wifi] (userC) {\textbf{User Laptops / Mobiles}\\[-0.1cm]{\footnotesize (Alerts + Chat Interface)}};
+
+% ====== Connections ======
+\draw[arrow] (sensors) -- node[right, font=\scriptsize, fill=white] {Analog Sensor Data} (esp32);
+\draw[arrow] (esp32) -- node[right, font=\scriptsize, fill=white, text width=2.8cm, align=center] {Serial CSV → JSON} (fastapi);
+\draw[arrow] (fastapi) -- node[right, font=\scriptsize, fill=white] {Validated Data} (lstm);
+\draw[arrow] (lstm) -- node[right, font=\scriptsize, fill=white] {Forecast JSON Output} (reticA);
+\draw[arrow, thick, green!60!black] (reticA) -- node[right, font=\scriptsize, fill=white] {LoRa Tx (868 MHz)} (heltecA);
+\draw[arrow, thick, green!60!black] (heltecA) -- node[above, font=\scriptsize, fill=white] {LoRa Link} (heltecB);
+\draw[arrow, thick, green!60!black] (heltecB) -- node[right, font=\scriptsize, fill=white] {Received Packet} (reticB);
+\draw[wifi] (reticB) -- node[right, font=\scriptsize, fill=white] {Local Broadcast} (wifi);
+\draw[wifi] (wifi) -- node[right, font=\scriptsize, fill=white] {Offline Alerts + Messages} (userC);
+
+% ====== Optional DB ======
+\node[draw, dashed, fill=yellow!10, rounded corners, minimum width=2cm, minimum height=0.7cm, font=\scriptsize] (db) at (1.4,-5.6) {Local Database};
+\draw[arrow, dashed] (lstm.east) -- (db.west);
+
+% ====== Legend ======
+\node[draw=none, font=\scriptsize, align=left, anchor=west] at (-6.8,-15) {
+\textbf{Legend:}\\
+\tikz{\draw[arrow] (0,0) -- (0.5,0);} Data Flow\\
+\tikz{\draw[arrow, dashed] (0,0) -- (0.5,0);} Storage / Logging\\
+\tikz{\draw[wifi] (0,0) -- (0.5,0);} Wi-Fi Broadcast\\
+\tikz{\draw[arrow, thick, green!60!black] (0,0) -- (0.5,0);} LoRa Transmission
+};
+
+\end{tikzpicture}
+\caption{EcoSenseNet System Architecture showing end-to-end data flow from sensor collection to local ML inference, LoRa transmission, and Wi-Fi broadcast.}
+\label{fig:ecosensenet_architecture_final}
+\end{figure}
+
+    \item \textbf{Processing and Prediction Layer –} Handles local data validation, transformation, and prediction using a FastAPI–based LSTM model.
+    \item \textbf{Mesh Communication Layer –} Utilizes the Reticulum networking stack and LoRa for long-range, encrypted communication.
+    \item \textbf{User Interface Layer –} Provides an offline web interface for viewing alerts and text-based communication via local Wi-Fi broadcast.
+\end{itemize}
+
+\subsection{Architectural Philosophy}
+
+Traditional IoT systems transmit raw data to cloud servers for processing, requiring uninterrupted internet access \cite{gubbi2013internet}. However, this approach fails in emergencies when network infrastructure collapses. In contrast, EcoSenseNet is designed to function autonomously: all critical tasks—data collection, analysis, prediction, and alerting—occur within the local network, without internet dependency.
+
+The system uses a \textbf{hybrid centralized–distributed model}: data processing and prediction occur on a main node (Laptop A), while distribution and alerting occur through decentralized Reticulum mesh communication. This design combines the efficiency of local computation with the robustness of peer-to-peer networking \cite{akyildiz2005wireless}.
+
+
+The architecture in Figure~\ref{fig:ecosensenet_architecture_final} illustrates how data flows through multiple layers—from raw sensor acquisition on Laptop A, to prediction and offline dissemination on Laptop B and user devices (Laptop C). The modular layering ensures that each node contributes to network resilience, enabling continuous operation during internet or power disruptions.
+
+\subsection{Three-Node Deployment Model}
+
+The practical deployment of EcoSenseNet across a college campus in Manipur utilizes a three-node architecture, strategically positioned to maximize coverage and reliability. Table~\ref{tab:node_deployment} summarizes the role, location, and technical configuration of each node.
+
+\begin{table}[H]
+\centering
+\caption{Node Deployment Configuration and Specifications}
+\label{tab:node_deployment}
+\begin{tabular}{|p{2.5cm}|p{3cm}|p{4cm}|p{4.5cm}|}
+\hline
+\textbf{Node} & \textbf{Physical Location} & \textbf{Primary Role} & \textbf{Hardware Configuration} \\
+\hline
+\textbf{Laptop A} (Admin Node) & Administration Block & Data acquisition, ML processing, transmission & ESP32 (COM4) + Sensors, Heltec LoRa V3 (COM7), FastAPI server, LSTM model, Reticulum Node A \\
+\hline
+\textbf{Laptop B} (Relay Node) & Hostel Block & Reception, Wi-Fi broadcasting & Heltec LoRa V3, Reticulum Node B, Wi-Fi hotspot service \\
+\hline
+\textbf{Laptop C} (User Node) & Student dormitories, classrooms & Alert viewing, messaging & Standard laptop with web browser, connected to Laptop B hotspot \\
+\hline
+\end{tabular}
+\end{table}
+
+This distribution ensures that the administration can monitor environmental conditions centrally while students in residential areas receive real-time alerts without requiring dedicated infrastructure in every building. The relay node (Laptop B) acts as a critical bridge between long-range LoRa communication and local Wi-Fi access.
+
+\section{Data Acquisition Layer}
+
+The data acquisition layer collects environmental data through interconnected sensors mounted on the Heltec LoRa V3 (ESP32). The ESP32's dual-core processor separates data sampling and transmission tasks for improved efficiency. It supports multiple analog (ADC) and digital GPIOs, which interface directly with gas sensors (MQ4, MQ7, MQ135, MQ2), the DHT22 temperature–humidity sensor, and the infrared flame detector.
+
+Sensor readings are converted into structured CSV data and relayed to the FastAPI server through a USB serial interface. The firmware ensures timestamped, validated readings, maintaining integrity before higher-level processing.
+
+\subsection{Sensor Selection and Justification}
+
+The choice of sensors was guided by the specific environmental hazards prevalent in Manipur, including gas leaks, fire risks, and extreme weather conditions. Table~\ref{tab:sensor_specs} provides detailed specifications for each sensor component.
+
+\begin{table}[H]
+\centering
+\caption{Environmental Sensor Specifications and Applications}
+\label{tab:sensor_specs}
+\begin{tabular}{|p{1cm}|p{3cm}|p{3cm}|p{2cm}|p{4.5cm}|}
+\hline
+\textbf{Sensor} & \textbf{Target Gas/Parameter} & \textbf{Detection Range} & \textbf{Response Time} & \textbf{Application Context} \\
+\hline
+MQ4 & Methane (CH4) & 200–10,000 ppm & <10 seconds & Natural gas leak detection \\
+\hline
+MQ7 & Carbon Monoxide (CO) & 20–2,000 ppm & <60 seconds & Incomplete combustion, vehicle exhaust \\
+\hline
+MQ135 & Air Quality (NH3, NOX, CO2) & 10–1,000 ppm & <30 seconds & General air quality monitoring \\
+\hline
+MQ2 & LPG, Smoke & 300–10,000 ppm & <10 seconds & LPG leak, smoke from fires \\
+\hline
+DHT22 & Temperature, Humidity & -40°C to 80°C, 0–100\% RH & 2 seconds & Environmental comfort, fire risk assessment \\
+\hline
+
+\end{tabular}
+\end{table}
+
+The sensors provide redundant coverage for fire-related hazards: the flame sensor detects active fires through infrared radiation, while MQ2 detects smoke, and MQ7 identifies carbon monoxide from combustion. This multi-sensor approach reduces false alarms and increases detection reliability.
+
+\subsection{ESP32 Interface Configuration}
+
+The Heltec LoRa V3 board integrates an ESP32 microcontroller with a built-in LoRa transceiver, eliminating the need for separate radio modules. The ESP32 connects to sensors through its GPIO pins as shown in Table~\ref{tab:gpio_mapping}.
+
+\begin{table}[H]
+\centering
+\caption{GPIO Pin Mapping for Sensor Interface on Laptop A}
+\label{tab:gpio_mapping}
+\begin{tabular}{|p{3cm}|p{2.5cm}|p{2.5cm}|p{5cm}|}
+\hline
+\textbf{Sensor} & \textbf{ESP32 GPIO Pin} & \textbf{Interface Type} & \textbf{Notes} \\
+\hline
+MQ4 (Methane) & GPIO 34 (ADC1\_6) & Analog Input & Requires 24-hour preheat for stable readings \\
+\hline
+MQ7 (CO) & GPIO 35 (ADC1\_7) & Analog Input & Operates in cyclic heating mode (1.5V/5V) \\
+\hline
+MQ135 (Air Quality) & GPIO 32 (ADC1\_4) & Analog Input & Sensitive to humidity, requires compensation \\
+\hline
+MQ2 (LPG/Smoke) & GPIO 33 (ADC1\_5) & Analog Input & Fast response for smoke detection \\
+\hline
+DHT22 (Temp/Humidity) & GPIO 15 & Digital (One-Wire) & Provides both temperature and humidity \\
+\hline
+\end{tabular}
+\end{table}
+
+All analog sensors use the ESP32's 12-bit ADC (Analog-to-Digital Converter), providing values between 0–4095. These raw readings are converted to meaningful concentrations using sensor-specific calibration curves provided by the manufacturers.
+
+\subsection{Data Collection Workflow}
+
+The firmware running on Laptop A's ESP32 (connected via COM4) implements a time-based data collection cycle:
+
+\begin{enumerate}
+    \item \textbf{Sampling Phase (180 seconds):} The ESP32 reads all sensors every 3 minutes, accumulating six readings over an 18-minute period.
+    \item \textbf{CSV Formation:} Raw sensor values are organized into a CSV structure with columns: \texttt{timestamp, nh3, ch4, co, temp, humidity, flame\_status}.
+    \item \textbf{JSON Conversion:} After collecting six complete rows, the firmware creates a JSON payload containing the entire dataset.
+    \item \textbf{Serial Transmission:} The JSON payload is sent over the USB serial interface (COM4) to the FastAPI server running on Laptop A.
+\end{enumerate}
+
+This batched approach reduces communication overhead while providing sufficient temporal resolution for predictive modeling. The 18-minute window captures short-term trends without overwhelming the LSTM model with excessive granularity.
+\begin{figure}[H]
+\centering
+\resizebox{0.8\textwidth}{!}{%
+\begin{tikzpicture}[
+    font=\small,
+    >=stealth,
+    node distance=1.6cm,
+    box/.style={rectangle, draw, rounded corners, minimum width=6.2cm, minimum height=1.0cm, align=center, thick, fill=blue!5},
+    arrow/.style={->, thick, >=stealth}
+]
+
+% Nodes (top to bottom)
+\node[box, fill=green!15] (sensors) {Environmental Sensors\\(MQ4, MQ7, MQ135, DHT22, Flame)};
+\node[box, fill=blue!10, below=of sensors] (esp32) {ESP32 (Heltec LoRa V3)\\Data Collection \& JSON Formation};
+\node[box, fill=orange!10, below=of esp32] (fastapi) {FastAPI Server + LSTM Model\\Data Processing \& Forecast};
+\node[box, fill=yellow!10, below=of fastapi] (reticA) {Reticulum Node (Laptop A)\\Transmit via LoRa};
+\node[box, fill=pink!10, below=of reticA] (reticB) {Reticulum Node (Laptop B)\\Receive \& Wi-Fi Broadcast};
+\node[box, fill=purple!10, below=of reticB] (users) {Student Devices (Laptop C / Phones)\\View Alerts \& Chat Offline};
+
+% Arrows between nodes
+\draw[arrow] (sensors) -- node[right, font=\scriptsize]{Sensor readings (CSV)} (esp32);
+\draw[arrow] (esp32) -- node[right, font=\scriptsize]{JSON payload via Serial} (fastapi);
+\draw[arrow] (fastapi) -- node[right, font=\scriptsize]{Predicted alerts (JSON)} (reticA);
+\draw[arrow] (reticA) -- node[right, font=\scriptsize]{LoRa packet (433 MHz)} (reticB);
+\draw[arrow] (reticB) -- node[right, font=\scriptsize]{Wi-Fi broadcast on ports 8000/8080} (users);
+
+% Phase labels - neatly aligned left
+\node[font=\scriptsize\bfseries, text=gray, anchor=east] at ($(sensors.west)+(-0.3,0)$) {Phase 1};
+\node[font=\scriptsize\bfseries, text=gray, anchor=east] at ($(esp32.west)+(-0.3,0)$) {Phase 1 (cont.)};
+\node[font=\scriptsize\bfseries, text=gray, anchor=east] at ($(fastapi.west)+(-0.3,0)$) {Phase 2};
+\node[font=\scriptsize\bfseries, text=gray, anchor=east] at ($(reticA.west)+(-0.3,0)$) {Phase 3};
+\node[font=\scriptsize\bfseries, text=gray, anchor=east] at ($(reticB.west)+(-0.3,0)$) {Phase 4};
+\node[font=\scriptsize\bfseries, text=gray, anchor=east] at ($(users.west)+(-0.3,0)$) {Phase 5};
+
+\end{tikzpicture}
+}
+\caption{Compact vertical sequence diagram showing EcoSenseNet data flow and offline alert broadcast process.}
+\label{fig:sequence_flow}
+\end{figure}
+
+
+
+
+
+\section{Processing and Prediction Layer}
+
+At this stage, the FastAPI backend parses the sensor data, verifies acceptable ranges, and sends it to the \textbf{LSTM prediction model}. The model, trained on Kaggle environmental datasets, forecasts environmental conditions for the next three hours with an accuracy exceeding 85\%. It uses a 24-hour rolling window of past data to predict methane, CO, and humidity levels every 15 minutes. The results are returned in structured JSON format for easy integration with downstream modules.
+
+\subsection{FastAPI Server Architecture}
+
+The FastAPI server on Laptop A acts as the central data processing hub, orchestrating the flow between sensor input, machine learning inference, and Reticulum transmission. Its modular design separates concerns into distinct endpoints and services.
+
+\subsubsection{API Endpoint Structure}
+
+Table~\ref{tab:api_endpoints} describes the key API endpoints implemented in the FastAPI application.
+
+\begin{table}[H]
+\centering
+\caption{FastAPI Endpoint Specifications}
+\label{tab:api_endpoints}
+\begin{tabular}{|p{3.8cm}|p{2.5cm}|p{4cm}|p{4cm}|}
+\hline
+\textbf{Endpoint} & \textbf{HTTP Method} & \textbf{Purpose} & \textbf{Response Format} \\
+\hline
+\texttt{/sensor/data} & POST & Receive sensor JSON from ESP32 & \texttt{\{status, validated\_data\}} \\
+\hline
+\texttt{/predict/forecast} & POST & Trigger LSTM prediction & \texttt{\{forecast, timestamp, alerts\}} \\
+\hline
+\texttt{/health} & GET & System health check & \texttt{\{status, uptime, last\_update\}} \\
+\hline
+\texttt{/transmit/reticulum} & POST & Send forecast to Reticulum & \texttt{\{transmission\_status\}} \\
+\hline
+\end{tabular}
+\end{table}
+
+The \texttt{/sensor/data} endpoint validates incoming sensor readings against predefined thresholds before storing them in the local database. If any reading exceeds safe limits, an immediate alert is generated without waiting for LSTM prediction.
+
+\subsection{LSTM Prediction Model}
+
+The \textbf{Long Short-Term Memory (LSTM)} neural network forms the core of the prediction component in this system. LSTM networks, a subclass of recurrent neural networks (RNNs), are uniquely suited for modeling temporal dependencies in time-series data. Unlike conventional feedforward architectures, LSTMs incorporate memory cells that preserve contextual information across long sequences, enabling the model to learn how present environmental states evolve from historical patterns. This property makes them particularly valuable for forecasting scenarios such as pollution trends or temperature fluctuations, where each reading is influenced by preceding measurements.
+
+\subsubsection{Model Architecture}
+
+The model used in this project adopts a three-layer LSTM configuration optimized for environmental time-series forecasting. The first two layers extract sequential dependencies while the dense layer condenses these features for final prediction. Dropout regularization is applied between layers to prevent overfitting and improve generalization when the system operates on live sensor inputs.
+
+
+The network was trained on over 10,000 samples of environmental monitoring data sourced from Kaggle. Each training instance represents 24 hours of historical readings divided into 15-minute intervals, yielding 96 input samples per sequence. The model forecasts 12 time steps ahead, corresponding to a 3-hour prediction horizon. Training utilized the \textbf{Adam optimizer} with a learning rate of 0.001 and the \textbf{Mean Squared Error (MSE)} as the loss function. Early stopping with a patience of 10 epochs prevented overfitting, and the final model achieved an average validation accuracy of \textbf{87.3\%} on unseen test data.
+
+\subsubsection{Prediction Workflow}
+
+When the FastAPI backend accumulates a full batch of sensor readings, it automatically triggers the LSTM prediction pipeline. The process begins with \textbf{data preprocessing}, where the raw readings are normalized using min–max scaling parameters derived from the training dataset. This ensures that all sensor features contribute equally during model inference.
+
+The server then constructs an input sequence using the latest 24-hour data retrieved from the local SQLite database, concatenated with the most recent real-time readings. This 96-sample sequence is passed to the trained LSTM model, which generates twelve future predictions at 15-minute intervals. Once predictions are obtained, a post-processing step denormalizes the output values, interprets the results, and categorizes each forecasted value based on pre-set safety thresholds. The processed data is then formatted into a \textbf{JSON structure} containing timestamps, predicted values, and alert flags for further dissemination through the Reticulum communication network.
+
+The alert system categorizes the predicted conditions into three levels—\textbf{Safe}, \textbf{Caution}, and \textbf{Danger}. This classification is color-coded in the interface, ensuring that users can interpret risk conditions at a glance. Predictions tagged as “Caution” or “Danger” are prioritized in message broadcasting through the Reticulum mesh network to guarantee timely delivery of warnings.
+
+\subsection{Data Validation and Threshold Checking}
+
+Before any prediction is performed, the FastAPI middleware executes a lightweight validation module to assess whether incoming sensor readings indicate an immediate hazard. This ensures that the system can issue emergency alerts without waiting for model inference. The validation routine compares each sensor’s value against predefined safety thresholds that were determined from environmental standards and sensor specifications.
+
+If the incoming data exceeds any of these limits, the system bypasses the machine learning model and triggers an emergency alert broadcast through the Reticulum framework. Table~\ref{tab:thresholds} summarizes the threshold parameters and associated mitigation actions.
+
+\begin{table}[H]
+\centering
+\caption{Safety Thresholds for Environmental Parameters}
+\label{tab:thresholds}
+\begin{tabular}{|p{3.2cm}|p{2.7cm}|p{2.7cm}|p{2.7cm}|p{3cm}|}
+\hline
+\textbf{Parameter} & \textbf{Safe Range} & \textbf{Caution Range} & \textbf{Danger Threshold} & \textbf{Action Taken} \\
+\hline
+Methane (CH4) & <500 ppm & 500–1000 ppm & >1000 ppm & Trigger alert, activate ventilation \\
+\hline
+Carbon Monoxide (CO) & <35 ppm & 35–100 ppm & >100 ppm & Evacuation alarm, broadcast emergency \\
+\hline
+Temperature & 15–35°C & 35–45°C & >45°C & Fire hazard warning \\
+\hline
+Humidity & 30–70\% & 70–85\% & >85\% & Mold growth risk alert \\
+\hline
+
+\end{tabular}
+\end{table}
+
+This multi-stage approach—comprising sensor validation, predictive modeling, and alert generation—ensures that the system remains proactive, accurate, and responsive. By combining rule-based checks with deep learning forecasts, EcoSenseNet balances immediate safety responses with intelligent short-term predictions, offering an efficient and reliable decision-support tool for disaster preparedness.
+
+\section{Mesh Communication Layer}
+
+The \textbf{mesh communication layer} forms the backbone of the EcoSenseNet system’s offline connectivity. It enables continuous data and alert transmission even in the absence of internet access. This layer is powered by the \textbf{Reticulum networking stack}, which handles all message routing, encryption, and peer-to-peer communication over LoRa and Wi-Fi interfaces.
+
+In this setup, \textbf{Laptop A} serves as the transmitting node that sends prediction data and alerts through its connected LoRa transceiver, while \textbf{Laptop B} acts as the receiving node that decrypts, stores, and rebroadcasts the information locally over Wi-Fi. The use of both \textbf{LoRa for long-range coverage} and \textbf{Wi-Fi for local distribution} ensures that alerts can reach users across large campus distances as well as nearby devices instantly.
+
+\subsection{Reticulum Overview}
+
+\textbf{Reticulum} is a decentralized, cryptography-based networking protocol designed specifically for offline and delay-tolerant communication. Unlike the traditional IP-based internet, Reticulum does not rely on centralized servers or IP addressing. Instead, each device generates its own secure cryptographic identity and announces itself to nearby nodes automatically. This allows nodes to discover one another and exchange encrypted data even over low-power networks like LoRa.
+
+The key advantages of Reticulum include:
+\begin{itemize}
+    \item \textbf{Self-sovereign identity:} Every node creates and manages its own identity using public-key cryptography.
+    \item \textbf{End-to-end encryption:} All communication uses Curve25519 elliptic curve encryption for confidentiality.
+    \item \textbf{Automatic mesh routing:} Packets hop between nodes, ensuring reachability even if one node goes offline.
+    \item \textbf{Low bandwidth optimization:} Efficient packet design allows reliable communication over LoRa’s limited data rate.
+\end{itemize}
+
+Each Reticulum node in the system is configured with its own identity, frequency, and communication parameters. The transmitter node (Laptop A) sends JSON packets from the FastAPI backend, and the receiver node (Laptop B) relays the decoded alerts to nearby users via its built-in Wi-Fi hotspot.
+
+\begin{table}[H]
+\centering
+\caption{Key Reticulum Configuration Parameters}
+\label{tab:reticulum_config_simplified}
+\begin{tabular}{|p{3.5cm}|p{5cm}|p{5cm}|}
+\hline
+\textbf{Parameter} & \textbf{Laptop A (Transmitter)} & \textbf{Laptop B (Receiver)} \\
+\hline
+Node Role & Admin Node (sends alerts \& predictions) & Relay Node (receives \& broadcasts data) \\
+\hline
+Frequency Band & 868 MHz ISM band & 868 MHz ISM band \\
+\hline
+Transmission Power & 20 dBm (100 mW) & 20 dBm (100 mW) \\
+\hline
+LoRa Settings & Bandwidth: 125 kHz, Spreading Factor: SF9 & Same as transmitter \\
+\hline
+Ports Used & COM7 (LoRa Tx), 8000 (MeshChat) & USB Serial (LoRa Rx), 8080 (Web Access) \\
+\hline
+\end{tabular}
+\end{table}
+
+The configuration above ensures a strong and stable connection that covers the entire campus region while maintaining energy efficiency.
+
+\subsection{LoRa Physical Layer}
+
+The communication between nodes is established using \textbf{LoRa} — a low-power, long-range modulation technique. LoRa is ideal for this project because it enables reliable data exchange over several kilometers with minimal energy consumption. It achieves this by spreading each transmitted symbol over a wide bandwidth, thereby improving resistance to interference and signal loss.
+
+For the campus-scale deployment, a spreading factor of \textbf{SF9} was selected. This provides an effective range of approximately \textbf{5 kilometers}, enough to cover major campus zones such as the administrative block, hostels, and classrooms. Although higher spreading factors like SF12 can reach longer distances, they also reduce data rates significantly. Thus, SF9 offers the best trade-off between \textbf{range, reliability, and transmission speed}.
+
+Each prediction packet, typically around 256 bytes in size, takes about 140–150 milliseconds to transmit via LoRa under SF9 configuration. These packets are encrypted by Reticulum before transmission and decrypted upon receipt, ensuring complete data confidentiality.
+
+\subsection{Message Transmission Workflow}
+
+The message flow between Laptop A and Laptop B is designed to be both efficient and secure. When the LSTM model produces its forecast results, the FastAPI backend serializes this data into a JSON object. Reticulum then wraps this JSON data into a packet addressed to the receiver’s cryptographic identity.
+
+Once transmitted through the Heltec LoRa V3 transceiver, the receiving node demodulates and decrypts the message using its private key. The validated payload is then forwarded to the local MeshChat database, where it becomes available for user viewing through the Wi-Fi dashboard. This entire exchange, including encryption and wireless transmission, typically occurs within one second—much faster than the 18-minute sensor sampling cycle, which remains the main bottleneck.
+
+Overall, the Reticulum–LoRa layer provides a \textbf{secure, decentralized, and infrastructure-independent communication channel} for all environmental alerts and predictions generated by the system.
+
+\section{User Interface Layer}
+
+The \textbf{User Interface (UI) layer} acts as the access point for all end users connected to the EcoSenseNet system. It provides a lightweight, browser-based dashboard that allows users to view environmental readings, receive alerts, and communicate with administrators through offline messaging.
+
+\subsection{Local Wi-Fi Broadcast}
+
+After receiving and decoding LoRa messages, Laptop B creates a local Wi-Fi hotspot that enables other devices to connect and access information without requiring internet access. This Wi-Fi network, named \texttt{EcoSenseNet\_Campus}, serves as a private intranet for the system. The configuration uses a standard IP range (192.168.137.1–254) with WPA2 security, allowing up to 20 simultaneous connections. The broadcast range of about 50 meters covers most classroom or hostel floors, ensuring all nearby users can access real-time alerts easily.
+
+\subsection{Access Control and Port Management}
+
+To maintain network discipline and avoid message flooding, the MeshChat web interface uses a simple two-port architecture:
+\begin{itemize}
+    \item \textbf{Port 8000:} Full access for administrators and staff to send and receive messages.
+    \item \textbf{Port 8080:} Read-only access for students and general users to view alerts and messages.
+\end{itemize}
+
+This approach ensures that while every user remains informed, only authorized personnel can broadcast or control system messages.
+
+\subsection{Interface Layout and Functionality}
+
+The web interface displays real-time environmental status, including methane, CO, temperature, humidity, and flame detection values. Each parameter is color-coded—green for safe, yellow for caution, and red for danger—to help users quickly interpret risk levels. The dashboard also includes a live feed of alerts, recent messages, and a basic trend visualization graph for the last few hours of readings.
+
+The interface automatically refreshes every 30 seconds, requiring no manual intervention. Figure~\ref{fig:interface_mockup} illustrates the conceptual layout of this dashboard, showing how the interface integrates both monitoring and communication within a single view.
+
+\subsection{Data Storage and Synchronization}
+
+Both the transmitting (Laptop A) and receiving (Laptop B) nodes maintain local databases to ensure persistence of readings, alerts, and messages. The database is organized into tables for sensor readings, predictions, alerts, and system health metrics. This local storage ensures that even if one node goes offline, previously received data remains accessible. Periodic synchronization ensures consistency between both devices once communication is restored.
+
+---
+
+\noindent In summary, the mesh communication and user interface layers together form the \textbf{heart of EcoSenseNet’s offline intelligence}. Reticulum provides the encrypted data backbone, LoRa extends the communication range, and the Wi-Fi interface ensures that every student or staff member can receive critical alerts in real time — even when the internet is completely unavailable.
+\section{Design Considerations and Trade-offs}
+
+\subsection{Performance and Scalability}
+
+The current design targets deployment scales of dozens to hundreds of nodes within a campus or small community. At this scale, the centralized prediction model running on a single server provides adequate performance, with inference completing in under one second per reading. The serial communication bandwidth limits data collection to approximately one reading per second, which proves sufficient for environmental monitoring where conditions change slowly.
+
+\begin{table}[H]
+\centering
+\caption{System performance metrics measured during testing}
+\label{tab:performance}
+\begin{tabular}{|l|r|l|}
+\hline
+\textbf{Metric} & \textbf{Value} & \textbf{Notes} \\
+\hline
+Sensor reading frequency & 1 Hz & Once per second \\
+\hline
+Serial transmission latency & 100-200 ms & Depends on data size \\
+\hline
+LSTM inference time & 800-1200 ms & Single prediction \\
+\hline
+End-to-end latency & 2-3 seconds & Sensor to prediction \\
+\hline
+LoRa packet transmission & 0.5-2 seconds & Depends on spreading factor \\
+\hline
+Mesh hop latency & 1-3 seconds & Per hop \\
+\hline
+Total alert delivery & 5-15 seconds & Sensor to user (3 hops) \\
+\hline
+Model accuracy (MAPE) & 12-15\% & Average across parameters \\
+\hline
+False positive rate & <5\% & Alert accuracy \\
+\hline
+Network uptime & 99.2\% & Over 30-day test \\
+\hline
+\end{tabular}
+\end{table}
+
+Scaling to larger deployments would require architectural modifications. Geographic distribution of prediction servers would reduce communication latency and provide redundancy. The mesh network naturally scales to larger areas as intermediate nodes relay messages, though network diameter affects end-to-end latency. Careful frequency planning becomes necessary to avoid interference between nearby LoRa transmitters, potentially requiring multiple frequency channels or time-division schemes.
+
+\subsection{Reliability and Fault Tolerance}
+
+System reliability emerges from redundancy at multiple levels. The mesh topology ensures message delivery even if individual nodes fail or move. The serial communication includes error detection through checksums and retransmission on timeout. The prediction model continues operating even when some sensors fail, though prediction confidence decreases. Local storage on each node prevents message loss if connectivity interrupts temporarily.
+
+\begin{table}[H]
+\centering
+\caption{System failure analysis and mitigation approaches}
+\label{tab:failure_modes}
+\begin{tabular}{|p{3.5cm}|p{4cm}|p{7cm}|}
+\hline
+\textbf{Failure Mode} & \textbf{Impact} & \textbf{Mitigation Strategy} \\
+\hline
+Single sensor failure & Reduced prediction accuracy & Model continues with remaining sensors; alert operator \\
+\hline
+ESP32 crash & Node stops transmitting & Watchdog timer auto-resets; redundant nodes continue \\
+\hline
+Serial connection loss & No data to server & Timeout detection; automatic reconnection attempts \\
+\hline
+Prediction server fail & No new predictions & Deploy redundant servers; cache last prediction \\
+\hline
+LoRa interference & Packet loss & Automatic retransmission; frequency hopping \\
+\hline
+Power outage & System shutdown & Battery backup; solar panel option \\
+\hline
+Sensor drift/calibration & Inaccurate readings & Periodic calibration checks; threshold alerts \\
+\hline
+Mesh network  & Isolated nodes & Store-and-forward; eventual consistency \\
+\hline
+\end{tabular}
+\end{table}
+
+However, several single points of failure exist in the current implementation. The central prediction server represents the most significant vulnerability since its failure halts new predictions across the network. Mitigating this requires deploying multiple redundant servers with synchronization mechanisms, adding complexity. The sensors themselves can fail, requiring periodic maintenance and calibration. False alarms from sensor drift or interference remain possible and require tuning of alert thresholds based on operational experience.
+
+\subsection{Security and Privacy}
+
+Reticulum's built-in encryption provides message confidentiality and authentication, preventing eavesdropping and message forgery. However, the broadcast nature of environmental alerts means any network participant can receive them. This design choice prioritizes information availability over confidentiality based on the assumption that environmental hazards should be widely known. Sensitive communications use directed messages with individual encryption keys.
+
+Physical security deserves consideration since outdoor deployment exposes hardware to tampering or theft. Weatherproof enclosures with tamper-evident seals can detect interference, and deployments should consider placement in monitored or secure locations where feasible. The lack of internet connectivity paradoxically enhances security by eliminating remote attack vectors, requiring physical access for compromise.
+
+\subsection{Power Management}
+
+Current prototype operation assumes continuous AC power availability, but field deployment necessitates autonomous power solutions. Solar panels with battery storage can provide sustainable power, particularly suitable for areas with limited grid access. The system's modest power requirements make this approach feasible with panels of 20-50 watts and battery capacities around 100Ah.
+
+Implementing power-aware operation would extend battery life significantly. The ESP32 could enter deep sleep between readings, waking periodically to sample sensors and transmit updates. The LoRa transceiver already includes automatic power saving when idle. Reducing the prediction frequency during low-activity periods conserves power while maintaining alerting capability for hazardous conditions. These optimizations could reduce average power consumption by an order of magnitude, enabling deployment in truly remote locations.

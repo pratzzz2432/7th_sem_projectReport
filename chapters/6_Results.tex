@@ -1,0 +1,103 @@
+
+
+This chapter presents the results obtained from testing and validating the proposed system. The experiments were conducted in realistic conditions to ensure that sensor data could be accurately collected, analyzed through the trained LSTM prediction model, and transmitted across the campus without any internet connectivity. The overall objective was to confirm that the system performs end-to-end—from sensor readings to alert delivery—reliably under practical constraints.
+
+\section{Testing Environment}
+All experiments were carried out within the IIIT Manipur campus under typical weather conditions. Two laptops were used in the setup. The first, acting as the base station, was connected to a Heltec LoRa V3 board integrated with an ESP32 microcontroller and five environmental sensors: MQ4 (methane), MQ7 (carbon monoxide), MQ135 (air quality), DHT22 (temperature and humidity), and a flame sensor. The second laptop, functioning as a receiving node, was placed at various distances from 50 meters to 800 meters to test the offline communication range.
+
+Both systems ran the Reticulum mesh network locally without any external network or internet support. The LSTM prediction model was trained beforehand using a Kaggle dataset containing several days of recorded environmental parameters such as methane, ammonia, carbon monoxide, and humidity. This trained model was integrated with the FastAPI backend for real-time forecasting during the test phase.
+
+\section{System Performance Measurements}
+During the tests, we measured the overall system performance in terms of latency, reliability, and accuracy. The complete process—from taking a sensor reading on the ESP32 to receiving an alert message on the second laptop—took between 4 and 7 seconds depending on distance and weather conditions.
+
+Serial data transfer from the ESP32 to the computer was nearly instantaneous, usually under 100 milliseconds. The FastAPI server processed each prediction through the LSTM model within 150–250 milliseconds on average hardware. The LoRa communication link between the two laptops achieved around 92–95\% successful message delivery within 500 meters, which dropped slightly to around 85\% at longer ranges (beyond 700 meters). The false alert rate during testing was approximately 8\%, showing that most alerts were genuine responses to environmental anomalies.
+
+\begin{table}[H]
+\centering
+\caption{Observed performance characteristics during campus-level testing}
+\label{tab:performance}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|p{7cm}|p{5cm}|}
+\hline
+\textbf{Performance Parameter} & \textbf{Observed Outcome} \\
+\hline
+Average time from sensor reading to final alert display & 4–7 seconds per complete cycle \\
+\hline
+Serial data transmission (ESP32 to FastAPI) & Less than 0.1 seconds consistently \\
+\hline
+LSTM prediction time & 150–250 milliseconds per prediction window \\
+\hline
+LoRa reliability (within 500 m) & 92–95\% successful transmissions \\
+\hline
+LoRa reliability (500–800 m) & Around 85\% success rate with minor delays \\
+\hline
+System stability during repeated operation & Continuous operation maintained without restart \\
+\hline
+Incorrect or false alerts & Approximately 8\% of total alerts \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Sensor Data Collection on ESP32}
+The ESP32 board collected sensor readings at one-second intervals and sent them to the connected laptop via serial communication. The Arduino code snippet below demonstrates how the main loop continuously reads sensor values and transmits them as CSV lines.
+
+\begin{lstlisting}[language=C, caption={Sensor reading and serial transmission on Heltec LoRa V3}]
+void loop() {
+  float methane = analogRead(MQ4_PIN) * METHANE_FACTOR;
+  float carbonMonoxide = analogRead(MQ7_PIN) * CO_FACTOR;
+  float airQuality = analogRead(MQ135_PIN) * AQ_FACTOR;
+  float temperature = dht.readTemperature();
+  float humidity = dht.readHumidity();
+  int flameDetected = digitalRead(FLAME_PIN);
+
+  String dataLine = String(millis()) + "," +
+                    String(methane, 2) + "," +
+                    String(carbonMonoxide, 2) + "," +
+                    String(airQuality, 2) + "," +
+                    String(temperature, 1) + "," +
+                    String(humidity, 1) + "," +
+                    String(flameDetected);
+
+  Serial.println(dataLine);
+  delay(1000);  // One reading per second
+}
+\end{lstlisting}
+
+When executed, the Serial Monitor displayed continuous sensor data streams in real time, formatted for easy parsing by the Python server.
+
+\section{Prediction Server and LSTM Output}
+The FastAPI backend received data via serial input, stored recent readings, and performed predictions using the LSTM model. The server used Python libraries such as \texttt{FastAPI}, \texttt{Joblib}, and \texttt{TensorFlow}. A prediction was triggered every 30 readings, producing a three-hour forecast. The system compared predicted values against safety thresholds and assigned alert levels (\textit{Safe}, \textit{Caution}, or \textit{Danger}).
+
+\section{Offline Message Delivery Through Reticulum}
+Once a high-risk condition was predicted, the Reticulum mesh network automatically broadcasted the alert to all connected LoRa nodes. This allowed offline, encrypted message transmission across the network, even in complete absence of internet connectivity.
+
+\begin{lstlisting}[language=Python, caption={Sending alerts through Reticulum mesh network}]
+import RNS
+
+reticulum = RNS.Reticulum()
+identity = RNS.Identity()
+destination = RNS.Destination(identity, RNS.Destination.IN, "campus_alerts")
+
+def send_alert(prediction_data):
+    alert_message = {
+        "timestamp": time.time(),
+        "alert_type": prediction_data["alert_level"],
+        "forecast": prediction_data["predictions"],
+        "message": "Environmental alert - check campus conditions"
+    }
+    packet = RNS.Packet(destination, json.dumps(alert_message).encode())
+    packet.send()
+\end{lstlisting}
+
+On the receiver node, alerts appeared instantly in the Reticulum MeshChat interface. Users could view alerts or communicate with others through the same offline network.
+
+\section{Physical Setup and Testing Conditions}
+The hardware prototype was assembled on a breadboard with all sensors connected to the Heltec LoRa V3. The board was powered via USB and mounted near open air to capture accurate environmental samples. The second laptop was moved progressively around the campus to measure communication range and latency under different conditions.
+
+\section{Observations and Discussion}
+The system achieved stable operation throughout the test period. The observed latency of 4–7 seconds per end-to-end cycle is acceptable for emergency alerts. The LSTM model correctly anticipated environmental variations, though occasional false alerts occurred due to rapid sensor fluctuations or humidity interference.
+
+LoRa communication proved reliable across the campus, maintaining stable packet delivery even through partial obstacles. However, performance degraded when transmitting through multiple reinforced walls or metallic obstructions. The DHT22 sensor occasionally failed during very humid conditions, leading to short data gaps. Despite these limitations, the system demonstrated strong resilience and functional reliability for offline operation.
+
+\section{Summary}
+The results confirm that the proposed system effectively meets its design goals. The combination of IoT-based data collection, machine learning prediction, and LoRa-based mesh networking provides a practical offline communication system for emergency scenarios. The system demonstrated acceptable latency, good accuracy, and strong reliability during real-world tests. With minor enhancements, it can be scaled to broader disaster-resilient deployments beyond the campus environment.
